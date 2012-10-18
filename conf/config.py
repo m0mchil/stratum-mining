@@ -1,7 +1,8 @@
-'''
-This is example configuration for Stratum server.
-Please rename it to config.py and fill correct values.
-'''
+# ******************** MINING SETTINGS ***************
+
+# Specify pool target as int >= 1
+POOL_TARGET = 10
+
 
 # ******************** GENERAL SETTINGS ***************
 
@@ -20,9 +21,9 @@ LOGLEVEL = 'INFO'
 # How many threads use for synchronous methods (services).
 # 30 is enough for small installation, for real usage
 # it should be slightly more, say 100-300.
-THREAD_POOL_SIZE = 10
+THREAD_POOL_SIZE = 50
 
-ENABLE_EXAMPLE_SERVICE = True
+ENABLE_EXAMPLE_SERVICE = False
 
 # ******************** TRANSPORTS *********************
 
@@ -30,7 +31,7 @@ ENABLE_EXAMPLE_SERVICE = True
 HOSTNAME = 'localhost'
 
 # Port used for Socket transport. Use 'None' for disabling the transport.
-LISTEN_SOCKET_TRANSPORT = 3333
+LISTEN_SOCKET_TRANSPORT = 3332
 
 # Port used for HTTP Poll transport. Use 'None' for disabling the transport
 LISTEN_HTTP_TRANSPORT = None
@@ -47,28 +48,27 @@ LISTEN_WSS_TRANSPORT = None
 # Hostname and credentials for one trusted Bitcoin node ("Satoshi's client").
 # Stratum uses both P2P port (which is 8333 already) and RPC port
 BITCOIN_TRUSTED_HOST = 'localhost'
-BITCOIN_TRUSTED_PORT = 8332
-BITCOIN_TRUSTED_USER = 'user'
-BITCOIN_TRUSTED_PASSWORD = 'somepassword'
+BITCOIN_TRUSTED_PORT = 8330
+BITCOIN_TRUSTED_USER = 'bitcoinrpc'
+BITCOIN_TRUSTED_PASSWORD = '3uxMBBTgSPF6PNxixcPXP8wMddpuA6NvjfJPLGTivroR'
 
 # Use "echo -n '<yourpassword>' | sha256sum | cut -f1 -d' ' "
 # for calculating SHA256 of your preferred password
-ADMIN_PASSWORD_SHA256 = None
-#ADMIN_PASSWORD_SHA256 = '9e6c0c1db1e0dfb3fa5159deb4ecd9715b3c8cd6b06bd4a3ad77e9a8c5694219' # SHA256 of the password
+#ADMIN_PASSWORD_SHA256 = None
+ADMIN_PASSWORD_SHA256 = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918' # SHA256 of the password
 
 IRC_NICK = None
 
-'''
-DATABASE_DRIVER = 'MySQLdb'
-DATABASE_HOST = 'localhost'
-DATABASE_DBNAME = 'pooldb'
-DATABASE_USER = 'pooldb'
-DATABASE_PASSWORD = '**empty**'
-'''
+
+MYSQL_HOST = 'localhost'
+MYSQL_DBNAME = 'pooldb'
+MYSQL_USER = 'pooldb'
+MYSQL_PASSWORD = 'pooldb'
+
 
 # Pool related settings
 INSTANCE_ID = 31
-CENTRAL_WALLET = 'set_valid_addresss_in_config!'
+CENTRAL_WALLET = '16tZAGyGy7Mknz8uSEHjsHqfqZNMqrGqSm'
 PREVHASH_REFRESH_INTERVAL = 5 # in sec
 MERKLE_REFRESH_INTERVAL = 60 # How often check memorypool
-COINBASE_EXTRAS = '/stratum/'
+COINBASE_EXTRAS = '/srs/'

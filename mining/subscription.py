@@ -4,6 +4,8 @@ from mining.interfaces import Interfaces
 import stratum.logger
 log = stratum.logger.get_logger('subscription')
 
+from stratum import settings
+
 class MiningSubscription(Subscription):
     '''This subscription object implements
     logic for broadcasting new jobs to the clients.'''
@@ -38,7 +40,8 @@ class MiningSubscription(Subscription):
         
         # Force set higher difficulty
         # TODO
-        #self.connection_ref().rpc('mining.set_difficulty', [2,], is_notification=True)
+        if hasattr(settings, 'POOL_TARGET'):
+            self.connection_ref().rpc('mining.set_difficulty', [settings.POOL_TARGET,], is_notification=True)
         #self.connection_ref().rpc('client.get_version', [])
         
         # Force client to remove previous jobs if any (eg. from previous connection)

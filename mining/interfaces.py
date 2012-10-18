@@ -10,6 +10,13 @@ from twisted.internet import reactor, defer
 import stratum.logger
 log = stratum.logger.get_logger('interfaces')
 
+from decimal import Decimal
+
+from stratum import settings
+
+import MySQLdb as db
+from datetime import datetime
+
 class WorkerManagerInterface(object):
     def __init__(self):
         # Fire deferred when manager is ready
@@ -32,17 +39,41 @@ class ShareLimiterInterface(object):
         pass
     
 class ShareManagerInterface(object):
+
     def __init__(self):
         # Fire deferred when manager is ready
         self.on_load = defer.Deferred()
         self.on_load.callback(True)
+
+        self.share_count = 0
+        self.last_rated = time.time()
+        self.db = db.connect(settings.MYSQL_HOST, settings.MYSQL_USER, settings.MYSQL_PASSWORD, settings.MYSQL_DBNAME);
+        self.cursor = self.db.cursor()
 
     def on_network_block(self, prevhash):
         '''Prints when there's new block coming from the network (possibly new round)'''
         pass
     
     def on_submit_share(self, worker_name, block_header, block_hash, shares, timestamp, is_valid):
-        log.info("%s %s %s" % (block_hash, 'valid' if is_valid else 'INVALID', worker_name))
+        #log.info("%s %s %s" % (block_hash, 'valid' if is_valid else 'INVALID', worker_name))
+        self.share_count += 1
+        now = time.time()
+        elapsed = now - self.last_rated
+        target = 1
+        if hasattr(settings, 'POOL_TARGET'):
+            target = settings.POOL_TARGET
+        if elapsed > 60:
+            rate = Decimal(((float(self.share_count) / elapsed) * 4294967296 * target) / 1000000000)
+            self.last_rated = now
+            self.share_count = 0
+            if rate > 0:
+                log.info("Hashrate: %.03f GH/s" % (rate))
+
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if not self.cursor.execute('UPDATE workers SET last_update="%s" WHERE name="%s";' % (timestamp, worker_name)):
+            self.cursor.execute('INSERT INTO workers (name, last_update) VALUES ("%s", "%s");' % (worker_name, timestamp))
+        self.db.commit()
+
     
     def on_submit_block(self, is_accepted, worker_name, block_header, block_hash, timestamp):
         log.info("Block %s %s" % (block_hash, 'ACCEPTED' if is_accepted else 'REJECTED'))
