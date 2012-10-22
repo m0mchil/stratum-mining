@@ -15,7 +15,9 @@ from decimal import Decimal
 from stratum import settings
 
 import MySQLdb as db
-from datetime import datetime
+import sqlalchemy.pool as pool
+
+db = pool.manage(db)
 
 class WorkerManagerInterface(object):
     def __init__(self):
@@ -47,8 +49,6 @@ class ShareManagerInterface(object):
 
         self.share_count = 0
         self.last_rated = time.time()
-        self.db = db.connect(settings.MYSQL_HOST, settings.MYSQL_USER, settings.MYSQL_PASSWORD, settings.MYSQL_DBNAME);
-        self.cursor = self.db.cursor()
 
     def on_network_block(self, prevhash):
         '''Prints when there's new block coming from the network (possibly new round)'''
@@ -69,10 +69,17 @@ class ShareManagerInterface(object):
             if rate > 0:
                 log.info("Hashrate: %.03f GH/s" % (rate))
 
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        if not self.cursor.execute('UPDATE workers SET last_update="%s" WHERE name="%s";' % (timestamp, worker_name)):
-            self.cursor.execute('INSERT INTO workers (name, last_update) VALUES ("%s", "%s");' % (worker_name, timestamp))
-        self.db.commit()
+        connection = None
+        try:
+            connection = db.connect(settings.MYSQL_HOST, settings.MYSQL_USER, settings.MYSQL_PASSWORD, settings.MYSQL_DBNAME)
+            cursor = connection.cursor()
+            timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
+            if not cursor.execute('UPDATE workers SET last_update="%s" WHERE name="%s";' % (timestamp, worker_name)):
+                cursor.execute('INSERT INTO workers (name, last_update) VALUES ("%s", "%s");' % (worker_name, timestamp))
+            connection.commit()
+        finally:
+            if connection:
+                connection.close()
 
     
     def on_submit_block(self, is_accepted, worker_name, block_header, block_hash, timestamp):
