@@ -74,8 +74,7 @@ class ShareManagerInterface(object):
             connection = db.connect(settings.MYSQL_HOST, settings.MYSQL_USER, settings.MYSQL_PASSWORD, settings.MYSQL_DBNAME)
             cursor = connection.cursor()
             timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp))
-            if not cursor.execute('UPDATE workers SET last_update="%s" WHERE name="%s";' % (timestamp, worker_name)):
-                cursor.execute('INSERT INTO workers (name, last_update) VALUES ("%s", "%s");' % (worker_name, timestamp))
+            cursor.execute('INSERT INTO workers (name, last_update) VALUES ("%s", "%s") ON DUPLICATE KEY UPDATE last_update="%s";' % (worker_name, timestamp, timestamp))
             connection.commit()
         finally:
             if connection:
